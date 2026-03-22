@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Podspresso</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0a0a0a;
+  color: #e0e0e0;
+  font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 20px 40px;
+}
+
+/* 品牌区 */
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.header .subtitle {
+  font-size: 14px;
+  color: #888;
+}
+
+/* 分组标题 */
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  margin-top: 40px;
+}
+
+.section-title:first-of-type {
+  margin-top: 0;
+}
+
+/* 卡片 */
+.card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border: 1.5px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.card.playing {
+  border-color: #4a9eff;
+}
+
+.card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.card-duration {
+  font-size: 12px;
+  color: #999;
+  background: #2a2a2a;
+  padding: 2px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.card-desc {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+/* 播放器 */
+.player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #333;
+  color: #ccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+.play-btn:hover {
+  background: #444;
+  color: #fff;
+}
+
+.play-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.play-btn.active {
+  background: #4a9eff;
+  color: #fff;
+}
+
+.play-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.progress-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.progress-bar:hover {
+  height: 6px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #4a9eff;
+  border-radius: 2px;
+  width: 0%;
+  pointer-events: none;
+}
+
+.time-display {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  min-width: 85px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 来源标注 */
+.card-source {
+  font-size: 11px;
+  color: #555;
+  margin-top: 12px;
+}
+
+/* 底部 */
+.footer {
+  text-align: center;
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid #1a1a1a;
+}
+
+.footer .feedback {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.footer .feedback a {
+  color: #4a9eff;
+  text-decoration: none;
+}
+
+.footer .feedback a:hover {
+  text-decoration: underline;
+}
+
+.footer .disclaimer {
+  font-size: 11px;
+  color: #444;
+}
+
+@media (max-width: 480px) {
+  .container { padding: 32px 16px 32px; }
+  .header h1 { font-size: 24px; }
+  .card { padding: 16px; }
+  .card-title { font-size: 16px; }
+  .card-desc { font-size: 13px; }
+  .time-display { min-width: 75px; font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <h1>Podspresso</h1>
+    <p class="subtitle">英文顶级播客的中文精品改编 · 每期 15 分钟</p>
+    <p class="feedback">想听什么？<a href="mailto:hhuyifan@gmail.com">告诉我们</a></p>
+  </header>
+
+  <main id="episodes"></main>
+
+  <footer class="footer">
+    <p class="feedback">想听什么？<a href="mailto:hhuyifan@gmail.com">告诉我们</a></p>
+    <p class="disclaimer">内容改编自公开播客，所有原始内容版权归原作者所有</p>
+  </footer>
+</div>
+
+<script>
+const EPISODES = [
+  {
+    group: 'F1 赛车',
+    source: '改编自 Acquired 播客 F1 特辑',
+    items: [
+      { file: 'audio/f1_line_a.mp3', title: '从没拥有过F1的人', desc: '一个从没拥有过 F1 的二手车贩子，怎么控制了它 45 年、从中抽走 30 亿美元、然后被人用 80 亿买走——而他到最后还觉得那列火车上的钱太少了。', duration: '~20 分钟' },
+      { file: 'audio/f1_line_b.mp3', title: '魅力与死亡', desc: '在 F1 的前三十年里，每年有十分之一的车手会死。Grace Kelly 带来了魅力，法拉利带来了灵魂，而死亡——直到一根丑陋的钛合金横杆终于把它关在了门外。', duration: '~15 分钟' },
+      { file: 'audio/f1_line_c.mp3', title: '三个局外人', desc: '一家能量饮料公司、一个破产的工程师和一个流媒体平台——三个局外人分别用一英镑、一英镑和一份更低的报价，掀翻了世界上最封闭的运动。', duration: '~16 分钟' },
+      { file: 'audio/f1_brawn.mp3', title: '一英镑的奇迹', desc: '金融危机中一个工程师用一英镑买下了一支 F1 车队。没有引擎，没有赞助商，没有预算。一年后他是世界冠军。', duration: '~7 分钟' },
+    ]
+  },
+  {
+    group: 'Google',
+    source: '改编自 Acquired 播客 Google 三部曲 + 公开资料',
+    items: [
+      { file: 'audio/google_line_f.mp3', title: '五个偶然', desc: '一杯别人买单的酒、一顿午饭闲聊、一篇论文、一周做出来的聊天界面、一个预录视频里的错误——五个没人计划过的时刻，加在一起的后果是我们现在活着的这个 AI 时代。', duration: '~17 分钟' },
+      { file: 'audio/google_line_a.mp3', title: '不想做广告的人', desc: '两个讨厌广告的斯坦福博士生，建了人类历史上最大的广告公司。然后他们的实验室发明了一种可能让广告不再必要的技术。如果这是小说，编辑会说反讽太重了。', duration: '~17 分钟' },
+      { file: 'audio/google_line_b.mp3', title: '害怕的帝国', desc: 'Chrome 怕微软，Android 怕 Apple，YouTube 怕错过视频，Gemini 怕 OpenAI。Google 帝国的每一块版图都不是远见的产物——是恐惧的产物。也许帝国不是被建造出来的，是被吓出来的。', duration: '~16 分钟' },
+      { file: 'audio/google_epilogue_2026.mp3', title: '后记：2026年春天', desc: '股价涨了 65%，Apple 反过来付钱买它的 AI，搜索量因为 AI Agent 不降反升——2026 年春天的 Google 看起来不像一个正在被颠覆的公司。但广告的根本问题还在那里。', duration: '~5 分钟' },
+    ]
+  }
+];
+
+let currentAudio = null;
+let currentCard = null;
+
+const playSVG = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>';
+const pauseSVG = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>';
+
+function formatTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function render() {
+  const main = document.getElementById('episodes');
+  let html = '';
+
+  EPISODES.forEach((group, gi) => {
+    html += `<h2 class="section-title">${group.group}</h2>`;
+    group.items.forEach((ep, ei) => {
+      const id = `ep-${gi}-${ei}`;
+      html += `
+        <div class="card" id="card-${id}">
+          <div class="card-header">
+            <span class="card-title">${ep.title}</span>
+            <span class="card-duration">${ep.duration}</span>
+          </div>
+          <p class="card-desc">${ep.desc}</p>
+          <div class="player">
+            <button class="play-btn" id="btn-${id}" data-file="${ep.file}" data-id="${id}" aria-label="播放">
+              ${playSVG}
+            </button>
+            <div class="progress-wrap">
+              <div class="progress-bar" id="bar-${id}" data-id="${id}">
+                <div class="progress-fill" id="fill-${id}"></div>
+              </div>
+              <span class="time-display" id="time-${id}">0:00 / 0:00</span>
+            </div>
+          </div>
+          <div class="card-source">${group.source}</div>
+        </div>`;
+    });
+  });
+
+  main.innerHTML = html;
+  bindEvents();
+}
+
+function stopCurrent() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.removeEventListener('timeupdate', onTimeUpdate);
+    currentAudio.removeEventListener('ended', onEnded);
+    currentAudio.removeEventListener('loadedmetadata', onMeta);
+
+    const oldId = currentAudio._epId;
+    if (oldId) {
+      document.getElementById('btn-' + oldId).innerHTML = playSVG;
+      document.getElementById('btn-' + oldId).classList.remove('active');
+      document.getElementById('card-' + oldId).classList.remove('playing');
+      document.getElementById('fill-' + oldId).style.width = '0%';
+      document.getElementById('time-' + oldId).textContent = '0:00 / 0:00';
+    }
+    currentAudio = null;
+  }
+}
+
+function onTimeUpdate() {
+  if (!currentAudio) return;
+  const id = currentAudio._epId;
+  const pct = (currentAudio.currentTime / currentAudio.duration) * 100;
+  document.getElementById('fill-' + id).style.width = pct + '%';
+  document.getElementById('time-' + id).textContent =
+    formatTime(currentAudio.currentTime) + ' / ' + formatTime(currentAudio.duration);
+}
+
+function onMeta() {
+  if (!currentAudio) return;
+  const id = currentAudio._epId;
+  document.getElementById('time-' + id).textContent =
+    '0:00 / ' + formatTime(currentAudio.duration);
+}
+
+function onEnded() {
+  if (!currentAudio) return;
+  const id = currentAudio._epId;
+  document.getElementById('btn-' + id).innerHTML = playSVG;
+  document.getElementById('btn-' + id).classList.remove('active');
+  document.getElementById('card-' + id).classList.remove('playing');
+}
+
+function togglePlay(file, id) {
+  if (currentAudio && currentAudio._epId === id) {
+    if (currentAudio.paused) {
+      currentAudio.play();
+      document.getElementById('btn-' + id).innerHTML = pauseSVG;
+      document.getElementById('btn-' + id).classList.add('active');
+      document.getElementById('card-' + id).classList.add('playing');
+    } else {
+      currentAudio.pause();
+      document.getElementById('btn-' + id).innerHTML = playSVG;
+      document.getElementById('btn-' + id).classList.remove('active');
+      document.getElementById('card-' + id).classList.remove('playing');
+    }
+    return;
+  }
+
+  stopCurrent();
+
+  const audio = new Audio(file);
+  audio._epId = id;
+  currentAudio = audio;
+
+  audio.addEventListener('timeupdate', onTimeUpdate);
+  audio.addEventListener('ended', onEnded);
+  audio.addEventListener('loadedmetadata', onMeta);
+
+  audio.addEventListener('error', () => {
+    const btn = document.getElementById('btn-' + id);
+    btn.disabled = true;
+    btn.innerHTML = playSVG;
+    btn.classList.remove('active');
+    document.getElementById('card-' + id).classList.remove('playing');
+  });
+
+  audio.play().then(() => {
+    document.getElementById('btn-' + id).innerHTML = pauseSVG;
+    document.getElementById('btn-' + id).classList.add('active');
+    document.getElementById('card-' + id).classList.add('playing');
+  }).catch(() => {
+    const btn = document.getElementById('btn-' + id);
+    btn.disabled = true;
+  });
+}
+
+function bindEvents() {
+  document.querySelectorAll('.play-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      togglePlay(btn.dataset.file, btn.dataset.id);
+    });
+  });
+
+  document.querySelectorAll('.progress-bar').forEach(bar => {
+    bar.addEventListener('click', (e) => {
+      if (!currentAudio || currentAudio._epId !== bar.dataset.id) return;
+      const rect = bar.getBoundingClientRect();
+      const pct = (e.clientX - rect.left) / rect.width;
+      currentAudio.currentTime = pct * currentAudio.duration;
+    });
+
+    let dragging = false;
+
+    bar.addEventListener('mousedown', (e) => {
+      if (!currentAudio || currentAudio._epId !== bar.dataset.id) return;
+      dragging = true;
+      seek(e, bar);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (dragging) seek(e, bar);
+    });
+
+    document.addEventListener('mouseup', () => { dragging = false; });
+
+    bar.addEventListener('touchstart', (e) => {
+      if (!currentAudio || currentAudio._epId !== bar.dataset.id) return;
+      dragging = true;
+      seek(e.touches[0], bar);
+    }, { passive: true });
+
+    bar.addEventListener('touchmove', (e) => {
+      if (dragging) seek(e.touches[0], bar);
+    }, { passive: true });
+
+    bar.addEventListener('touchend', () => { dragging = false; });
+  });
+}
+
+function seek(e, bar) {
+  if (!currentAudio) return;
+  const rect = bar.getBoundingClientRect();
+  let pct = (e.clientX - rect.left) / rect.width;
+  pct = Math.max(0, Math.min(1, pct));
+  currentAudio.currentTime = pct * currentAudio.duration;
+}
+
+render();
+</script>
+
+</body>
+</html>
